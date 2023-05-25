@@ -3,6 +3,7 @@ import Table from "react-bootstrap/Table";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Container, Form } from "react-bootstrap";
 import axios from "axios";
+import Pagination from "./Components/Pagination";
 
 // const api = axios.create({
 //   baseURL: "https://restcountries.com/v3.1",
@@ -13,11 +14,15 @@ function App() {
   const [countries, setCountries] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [countriesPerPage, setCountriesPerPage] = useState(25);
 
   useEffect(() => {
     const loadPost = async () => {
       setLoading(true);
-      const response = await axios.get(baseUrl + "/all");
+      const response = await axios.get(baseUrl + "/all", {
+        params: { _limit: 10 },
+      });
       setCountries(response.data);
       setLoading(false);
     };
@@ -25,6 +30,8 @@ function App() {
     loadPost();
   }, []);
 
+  const lastPostIndex = currentPage * countriesPerPage;
+  const firstPostIndex = lastPostIndex - countriesPerPage;
   return (
     <div className="App">
       <Container className="mt-2">
@@ -77,6 +84,7 @@ function App() {
                     return country;
                   }
                 })
+                .slice(firstPostIndex, lastPostIndex)
                 .map((country, index) => {
                   return (
                     <tr key={index}>
@@ -102,6 +110,14 @@ function App() {
           </Table>
         )}
       </Container>
+      <div className="w-75 mx-auto">
+        <Pagination
+          totalCounties={countries.length}
+          countriesPerPage={countriesPerPage}
+          setCurrentPage={setCurrentPage}
+          currentPage={currentPage}
+        />
+      </div>
     </div>
   );
 }
