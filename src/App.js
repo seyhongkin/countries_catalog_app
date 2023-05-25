@@ -1,13 +1,11 @@
+import "./style.css";
 import { useState, useEffect } from "react";
 import Table from "react-bootstrap/Table";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { Container, Form } from "react-bootstrap";
+import { Button, Container, Form } from "react-bootstrap";
 import axios from "axios";
 import Pagination from "./Components/Pagination";
-
-// const api = axios.create({
-//   baseURL: "https://restcountries.com/v3.1",
-// });
+import ModalComponent from "./Components/Modal";
 
 function App() {
   const baseUrl = "https://restcountries.com/v3.1";
@@ -15,7 +13,8 @@ function App() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [countriesPerPage, setCountriesPerPage] = useState(25);
+  const [countriesPerPage] = useState(25);
+  const [order, setOrder] = useState("asc");
 
   useEffect(() => {
     const loadPost = async () => {
@@ -30,6 +29,20 @@ function App() {
     loadPost();
   }, []);
 
+  const sorting = () => {
+    if (order === "asc") {
+      setCountries(
+        countries.sort((a, b) => (a.name.official > b.name.official ? 1 : -1))
+      );
+      setOrder("desc");
+    } else {
+      setCountries(
+        countries.sort((a, b) => (a.name.official < b.name.official ? 1 : -1))
+      );
+      setOrder("asc");
+    }
+  };
+
   const lastPostIndex = currentPage * countriesPerPage;
   const firstPostIndex = lastPostIndex - countriesPerPage;
   return (
@@ -37,7 +50,7 @@ function App() {
       <Container className="mt-2">
         <Form className="w-25 mb-3">
           <Form.Group
-            className="mb-3"
+            className="mb-1"
             controlId="formSearch"
           >
             <Form.Label>Search</Form.Label>
@@ -49,7 +62,13 @@ function App() {
             />
           </Form.Group>
         </Form>
-
+        <label>Sorting: </label>
+        <Button
+          className="mb-2 mx-2"
+          onClick={() => sorting()}
+        >
+          {order.toUpperCase()}
+        </Button>
         {loading ? (
           <h1>Loading...</h1>
         ) : (
@@ -63,7 +82,7 @@ function App() {
               <tr>
                 <th>#</th>
                 <th>Flag</th>
-                <th>Country Name</th>
+                <th> Country Name</th>
                 <th>CCA2</th>
                 <th>CCA3</th>
                 <th>Native Country Name</th>
@@ -83,6 +102,7 @@ function App() {
                   ) {
                     return country;
                   }
+                  return null;
                 })
                 .slice(firstPostIndex, lastPostIndex)
                 .map((country, index) => {
@@ -96,7 +116,9 @@ function App() {
                           width="30px"
                         />
                       </td>
-                      <td>{country.name.official}</td>
+                      <td>
+                        <ModalComponent data={country} />
+                      </td>
                       <td>{country.cca2}</td>
                       <td>{country.cca3}</td>
 
@@ -110,7 +132,7 @@ function App() {
           </Table>
         )}
       </Container>
-      <div className="w-75 mx-auto">
+      <div className="w-75 mx-auto mb-5">
         <Pagination
           totalCounties={countries.length}
           countriesPerPage={countriesPerPage}
